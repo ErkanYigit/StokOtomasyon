@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "chart.js": "^4.5.0",
+    "jspdf": "^3.0.1",
+    "mongoose": "^8.16.2",
+    "react-chartjs-2": "^5.3.0",
+    "react-icons": "^4.10.1"
+  },
+  "devDependencies": {
+    "@types/react-icons": "^2.2.7"
+  }
+}

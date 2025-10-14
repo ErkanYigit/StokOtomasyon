@@ -1,0 +1,45 @@
+# ----- Genel -----
+node_modules/
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.cache/
+.eslintcache
+.parcel-cache/
+.turbo/
+
+# IDE / OS
+.idea/
+.vscode/
+.history/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Derleme çıktıları
+dist/
+build/
+coverage/
+
+# Ortam değişkenleri
+.env
+.env.*
+!*.example
+
+# Frontend özel
+frontend/build/
+frontend/coverage/
+frontend/.env
+frontend/.env.*
+
+# Backend özel
+backend/coverage/
+backend/.env
+backend/.env.*
+
+# Diğer
+uploads/
+tmp/
+
