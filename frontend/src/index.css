@@ -15,11 +15,11 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-primary-black text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-800 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-gold focus:ring-offset-2;
+    @apply bg-primary-black text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-800 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-gold focus:ring-offset-2 dark:bg-primary-gold dark:text-primary-black dark:hover:bg-yellow-500;
   }
   
   .btn-secondary {
-    @apply bg-primary-gold text-primary-black px-4 py-2 rounded-lg font-medium hover:bg-yellow-500 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-gold focus:ring-offset-2;
+    @apply bg-primary-gold text-primary-black px-4 py-2 rounded-lg font-medium hover:bg-yellow-500 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-gold focus:ring-offset-2 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600;
   }
   
   .btn-outline {

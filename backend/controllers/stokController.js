@@ -36,19 +36,41 @@ const getAllStoklar = async (req, res) => {
             ];
         }
 
-        // Sıralama
-        const sortOptions = {};
-        sortOptions[siralama] = yon === 'desc' ? -1 : 1;
-
-        // Sayfalama
-        const skip = (parseInt(page) - 1) * parseInt(limit);
-        
-        // Stokları getir
-        const stoklar = await Stok.find(filter)
-            .populate('guncelleyenKullanici', 'ad soyad')
-            .sort(sortOptions)
-            .skip(skip)
-            .limit(parseInt(limit));
+        // Toplam değer sıralaması için önce tüm stokları al
+        let stoklar;
+        if (siralama === 'toplamDeger') {
+            // Tüm stokları al
+            const allStoklar = await Stok.find(filter)
+                .populate('guncelleyenKullanici', 'ad soyad');
+            
+            // Client-side sıralama
+            stoklar = allStoklar.sort((a, b) => {
+                const toplamA = a.miktar * a.birimFiyat;
+                const toplamB = b.miktar * b.birimFiyat;
+                return yon === 'desc' ? toplamB - toplamA : toplamA - toplamB;
+            });
+            
+            // Sayfalama uygula
+            const skip = (parseInt(page) - 1) * parseInt(limit);
+            stoklar = stoklar.slice(skip, skip + parseInt(limit));
+        } else {
+            // Normal sıralama
+            const sortOptions = {};
+            sortOptions[siralama] = yon === 'desc' ? -1 : 1;
+            
+            // Sayfalama
+            const skip = (parseInt(page) - 1) * parseInt(limit);
+            
+            // Türkçe karakter desteği için collation kullan
+            const collation = siralama === 'malzemeAdi' ? { locale: 'tr', strength: 1 } : {};
+            
+            stoklar = await Stok.find(filter)
+                .populate('guncelleyenKullanici', 'ad soyad')
+                .sort(sortOptions)
+                .collation(collation)
+                .skip(skip)
+                .limit(parseInt(limit));
+        }
 
         // Toplam sayı
         const total = await Stok.countDocuments(filter);

@@ -27,6 +27,10 @@ const StokYonetimi: React.FC = () => {
     stokDurumu: '',
     arama: ''
   });
+  const [sortConfig, setSortConfig] = useState<{
+    key: string;
+    direction: 'asc' | 'desc';
+  } | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [selectedStok, setSelectedStok] = useState<StokData | undefined>(undefined);
@@ -47,7 +51,9 @@ const StokYonetimi: React.FC = () => {
       const response = await stokAPI.getAll({
         page: currentPage,
         limit: 10,
-        ...filters
+        ...filters,
+        siralama: sortConfig ? sortConfig.key : undefined,
+        yon: sortConfig ? sortConfig.direction : undefined
       });
 
       if (response.success && response.data) {
@@ -84,7 +90,7 @@ const StokYonetimi: React.FC = () => {
 
   useEffect(() => {
     fetchStoklar();
-  }, [currentPage, filters]);
+  }, [currentPage, filters, sortConfig]);
 
   useEffect(() => {
     fetchMovements();
@@ -131,6 +137,26 @@ const StokYonetimi: React.FC = () => {
   const handleFilterChange = (key: string, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
     setCurrentPage(1);
+  };
+
+  // Sıralama fonksiyonu
+  const handleSort = (key: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+    setCurrentPage(1);
+  };
+
+  // Sıralama ikonu
+  const getSortIcon = (key: string) => {
+    if (!sortConfig || sortConfig.key !== key) {
+      return <span className="ml-1 text-gray-400">↕</span>;
+    }
+    return sortConfig.direction === 'asc' 
+      ? <span className="ml-1 text-primary-gold">↑</span>
+      : <span className="ml-1 text-primary-gold">↓</span>;
   };
 
   const handlePageChange = (page: number) => {
@@ -340,12 +366,42 @@ const StokYonetimi: React.FC = () => {
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr>
-                  <th className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100">Malzeme</th>
-                  <th className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100">Kategori</th>
-                  <th className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100">Miktar</th>
-                  <th className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100">Birim Fiyat</th>
-                  <th className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100">Toplam Değer</th>
-                  <th className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100">Durum</th>
+                  <th 
+                    className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
+                    onClick={() => handleSort('malzemeAdi')}
+                  >
+                    Malzeme{getSortIcon('malzemeAdi')}
+                  </th>
+                  <th 
+                    className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
+                    onClick={() => handleSort('kategori')}
+                  >
+                    Kategori{getSortIcon('kategori')}
+                  </th>
+                  <th 
+                    className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
+                    onClick={() => handleSort('miktar')}
+                  >
+                    Miktar{getSortIcon('miktar')}
+                  </th>
+                  <th 
+                    className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
+                    onClick={() => handleSort('birimFiyat')}
+                  >
+                    Birim Fiyat{getSortIcon('birimFiyat')}
+                  </th>
+                  <th 
+                    className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
+                    onClick={() => handleSort('toplamDeger')}
+                  >
+                    Toplam Değer{getSortIcon('toplamDeger')}
+                  </th>
+                  <th 
+                    className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
+                    onClick={() => handleSort('stokDurumu')}
+                  >
+                    Durum{getSortIcon('stokDurumu')}
+                  </th>
                   <th className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100">İşlemler</th>
                 </tr>
               </thead>

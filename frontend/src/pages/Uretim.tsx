@@ -25,6 +25,10 @@ const Uretim: React.FC = () => {
   const [editProduction, setEditProduction] = useState<ProductionData | null>(null);
   const [form, setForm] = useState<Omit<ProductionData, '_id' | 'createdAt' | 'updatedAt'>>(emptyProduction);
   const [formLoading, setFormLoading] = useState(false);
+  const [sortConfig, setSortConfig] = useState<{
+    key: string;
+    direction: 'asc' | 'desc';
+  } | null>(null);
   const [orders, setOrders] = useState<OrderData[]>([]);
 
   const fetchProductions = async () => {
@@ -124,6 +128,58 @@ const Uretim: React.FC = () => {
     }
   };
 
+  // Sıralama fonksiyonu
+  const handleSort = (key: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  // Sıralama ikonu
+  const getSortIcon = (key: string) => {
+    if (!sortConfig || sortConfig.key !== key) {
+      return <span className="ml-1 text-gray-400">↕</span>;
+    }
+    return sortConfig.direction === 'asc' 
+      ? <span className="ml-1 text-primary-gold">↑</span>
+      : <span className="ml-1 text-primary-gold">↓</span>;
+  };
+
+  // Sıralanmış üretimleri al
+  const getSortedProductions = () => {
+    if (!sortConfig) return productions;
+
+    return [...productions].sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+
+      // Sipariş sıralaması için özel işlem
+      if (sortConfig.key === 'siparis') {
+        aValue = a.siparis?.musteriAdi || '';
+        bValue = b.siparis?.musteriAdi || '';
+      } else {
+        aValue = a[sortConfig.key as keyof ProductionData];
+        bValue = b[sortConfig.key as keyof ProductionData];
+      }
+
+      // Tarih alanları için özel işlem
+      if (sortConfig.key === 'baslangicTarihi' || sortConfig.key === 'bitisTarihi') {
+        aValue = aValue ? new Date(aValue as string).getTime() : 0;
+        bValue = bValue ? new Date(bValue as string).getTime() : 0;
+      }
+
+      if (aValue < bValue) {
+        return sortConfig.direction === 'asc' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+  };
+
   // PDF olarak indir fonksiyonu
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
@@ -135,7 +191,7 @@ const Uretim: React.FC = () => {
       'Durum',
       'Aşamalar'
     ]];
-    const body = productions.map(prod => [
+    const body = getSortedProductions().map(prod => [
       prod.siparis?.musteriAdi || '-',
       prod.baslangicTarihi ? new Date(prod.baslangicTarihi).toLocaleDateString('tr-TR') : '-',
       prod.durum,
@@ -147,11 +203,27 @@ const Uretim: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Üretim Takibi</h1>
-          <button className="btn-primary" onClick={openAddModal}>+ Yeni Üretim</button>
+      {/* Header */}
+      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-6">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Üretim Takibi</h1>
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                Üretim süreçleri ve aşama takibi
+              </p>
+            </div>
+            <button className="btn-primary flex items-center" onClick={openAddModal}>
+              <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Yeni Üretim
+            </button>
+          </div>
         </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {error && <div className="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-2 rounded mb-3">{error}</div>}
         <div className="card dark:bg-gray-800 dark:border-gray-700">
           <div className="flex justify-end mb-2">
@@ -166,9 +238,24 @@ const Uretim: React.FC = () => {
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr>
-                  <th className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100">Sipariş</th>
-                  <th className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100">Başlangıç</th>
-                  <th className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100">Durum</th>
+                  <th 
+                    className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
+                    onClick={() => handleSort('siparis')}
+                  >
+                    Sipariş{getSortIcon('siparis')}
+                  </th>
+                  <th 
+                    className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
+                    onClick={() => handleSort('baslangicTarihi')}
+                  >
+                    Başlangıç{getSortIcon('baslangicTarihi')}
+                  </th>
+                  <th 
+                    className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
+                    onClick={() => handleSort('durum')}
+                  >
+                    Durum{getSortIcon('durum')}
+                  </th>
                   <th className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100">Aşamalar</th>
                   <th className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100">İşlemler</th>
                 </tr>
@@ -176,10 +263,10 @@ const Uretim: React.FC = () => {
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                 {loading ? (
                   <tr><td colSpan={5} className="text-center py-8 text-gray-500 dark:text-gray-300 bg-white dark:bg-gray-800">Yükleniyor...</td></tr>
-                ) : productions.length === 0 ? (
+                ) : getSortedProductions().length === 0 ? (
                   <tr><td colSpan={5} className="text-center py-8 text-gray-500 dark:text-gray-300 bg-white dark:bg-gray-800">Henüz üretim kaydı yok</td></tr>
                 ) : (
-                  productions.map((prod, idx) => (
+                  getSortedProductions().map((prod, idx) => (
                     <tr key={prod._id} className={"hover:bg-gray-50 dark:hover:bg-gray-700 " + (idx % 2 === 0 ? 'dark:bg-gray-900' : 'dark:bg-gray-800') + " dark:text-gray-100"}>
                       <td className="table-cell text-gray-900 dark:text-gray-100">{prod.siparis?.musteriAdi || '-'}</td>
                       <td className="table-cell text-gray-900 dark:text-gray-100">{prod.baslangicTarihi ? new Date(prod.baslangicTarihi).toLocaleDateString('tr-TR') : '-'}</td>

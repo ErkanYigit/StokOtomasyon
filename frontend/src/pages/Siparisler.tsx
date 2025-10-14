@@ -21,6 +21,10 @@ const Siparisler: React.FC = () => {
   const [editOrder, setEditOrder] = useState<OrderData | null>(null);
   const [form, setForm] = useState<Omit<OrderData, '_id' | 'createdAt' | 'updatedAt'>>(emptyOrder);
   const [formLoading, setFormLoading] = useState(false);
+  const [sortConfig, setSortConfig] = useState<{
+    key: string;
+    direction: 'asc' | 'desc';
+  } | null>(null);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -33,6 +37,36 @@ const Siparisler: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Sıralanmış siparişleri al
+  const getSortedOrders = () => {
+    if (!sortConfig) return orders;
+
+    return [...orders].sort((a, b) => {
+      let aValue = a[sortConfig.key as keyof OrderData];
+      let bValue = b[sortConfig.key as keyof OrderData];
+
+      // Tarih alanları için özel işlem
+      if (sortConfig.key === 'siparisTarihi' || sortConfig.key === 'teslimTarihi') {
+        aValue = aValue ? new Date(aValue as string).getTime() : 0;
+        bValue = bValue ? new Date(bValue as string).getTime() : 0;
+      }
+
+      // Sayısal alanlar için
+      if (sortConfig.key === 'toplamTutar') {
+        aValue = aValue || 0;
+        bValue = bValue || 0;
+      }
+
+      if (aValue < bValue) {
+        return sortConfig.direction === 'asc' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
   };
 
   useEffect(() => {
@@ -112,6 +146,25 @@ const Siparisler: React.FC = () => {
     }
   };
 
+  // Sıralama fonksiyonu
+  const handleSort = (key: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  // Sıralama ikonu
+  const getSortIcon = (key: string) => {
+    if (!sortConfig || sortConfig.key !== key) {
+      return <span className="ml-1 text-gray-400">↕</span>;
+    }
+    return sortConfig.direction === 'asc' 
+      ? <span className="ml-1 text-primary-gold">↑</span>
+      : <span className="ml-1 text-primary-gold">↓</span>;
+  };
+
   // PDF olarak indir fonksiyonu
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
@@ -127,7 +180,7 @@ const Siparisler: React.FC = () => {
       'Açıklama'
     ]];
     // Tablo verileri
-    const body = orders.map(order => [
+    const body = getSortedOrders().map(order => [
       order.musteriAdi || '-',
       order.siparisTarihi ? new Date(order.siparisTarihi).toLocaleDateString('tr-TR') : '-',
       order.teslimTarihi ? new Date(order.teslimTarihi).toLocaleDateString('tr-TR') : '-',
@@ -140,12 +193,28 @@ const Siparisler: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-16">
-      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Siparişler</h1>
-          <button className="btn-primary" onClick={openAddModal}>+ Yeni Sipariş</button>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Header */}
+      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-6">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Siparişler</h1>
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                Müşteri siparişleri ve teslim takibi
+              </p>
+            </div>
+            <button className="btn-primary flex items-center" onClick={openAddModal}>
+              <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Yeni Sipariş
+            </button>
+          </div>
         </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {error && <div className="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-2 rounded mb-3">{error}</div>}
         <div className="card dark:bg-gray-800 dark:border-gray-700">
           <div className="flex justify-end mb-2">
@@ -160,11 +229,36 @@ const Siparisler: React.FC = () => {
             <table className="w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr>
-                  <th className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100 whitespace-nowrap">Müşteri</th>
-                  <th className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100 whitespace-nowrap">Sipariş Tarihi</th>
-                  <th className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100 whitespace-nowrap">Teslim Tarihi</th>
-                  <th className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100 whitespace-nowrap">Durum</th>
-                  <th className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100 whitespace-nowrap">Toplam</th>
+                  <th 
+                    className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100 whitespace-nowrap cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
+                    onClick={() => handleSort('musteriAdi')}
+                  >
+                    Müşteri{getSortIcon('musteriAdi')}
+                  </th>
+                  <th 
+                    className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100 whitespace-nowrap cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
+                    onClick={() => handleSort('siparisTarihi')}
+                  >
+                    Sipariş Tarihi{getSortIcon('siparisTarihi')}
+                  </th>
+                  <th 
+                    className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100 whitespace-nowrap cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
+                    onClick={() => handleSort('teslimTarihi')}
+                  >
+                    Teslim Tarihi{getSortIcon('teslimTarihi')}
+                  </th>
+                  <th 
+                    className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100 whitespace-nowrap cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
+                    onClick={() => handleSort('durum')}
+                  >
+                    Durum{getSortIcon('durum')}
+                  </th>
+                  <th 
+                    className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100 whitespace-nowrap cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
+                    onClick={() => handleSort('toplamTutar')}
+                  >
+                    Toplam{getSortIcon('toplamTutar')}
+                  </th>
                   <th className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100 whitespace-normal break-words">Açıklama</th>
                   <th className="table-header bg-gray-50 dark:bg-gray-800 dark:text-gray-100 whitespace-nowrap">İşlemler</th>
                 </tr>
@@ -172,10 +266,10 @@ const Siparisler: React.FC = () => {
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                 {loading ? (
                   <tr><td colSpan={6} className="text-center py-8 text-gray-500 dark:text-gray-300 bg-white dark:bg-gray-800">Yükleniyor...</td></tr>
-                ) : orders.length === 0 ? (
-                  <tr><td colSpan={6} className="text-center py-8 text-gray-500 dark:text-gray-300 bg-white dark:bg-gray-800">Henüz sipariş yok</td></tr>
+                ) : getSortedOrders().length === 0 ? (
+                  <tr><td colSpan={7} className="text-center py-8 text-gray-500 dark:text-gray-300 bg-white dark:bg-gray-800">Henüz sipariş yok</td></tr>
                 ) : (
-                  orders.map((order, idx) => (
+                  getSortedOrders().map((order, idx) => (
                     <tr key={order._id} className={"hover:bg-gray-50 dark:hover:bg-gray-700 " + (idx % 2 === 0 ? 'dark:bg-gray-900' : 'dark:bg-gray-800') + " dark:text-gray-100"}>
                       <td className="table-cell text-gray-900 dark:text-gray-100 whitespace-nowrap">{order.musteriAdi}</td>
                       <td className="table-cell text-gray-900 dark:text-gray-100 whitespace-nowrap">{order.siparisTarihi ? new Date(order.siparisTarihi).toLocaleDateString('tr-TR') : '-'}</td>

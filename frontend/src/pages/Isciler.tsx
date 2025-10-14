@@ -157,6 +157,10 @@ const Isciler: React.FC<IscilerProps> = ({ showAddWorker, setShowAddWorker }) =>
   });
   const [loading, setLoading] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<{id: string, ad: string, soyad: string} | null>(null);
+  const [sortConfig, setSortConfig] = useState<{
+    key: string;
+    direction: 'asc' | 'desc';
+  } | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -256,6 +260,58 @@ const Isciler: React.FC<IscilerProps> = ({ showAddWorker, setShowAddWorker }) =>
     }
   };
 
+  // Sıralama fonksiyonu
+  const handleSort = (key: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  // Sıralama ikonu
+  const getSortIcon = (key: string) => {
+    if (!sortConfig || sortConfig.key !== key) {
+      return <span className="ml-1 text-gray-400">↕</span>;
+    }
+    return sortConfig.direction === 'asc' 
+      ? <span className="ml-1 text-primary-gold">↑</span>
+      : <span className="ml-1 text-primary-gold">↓</span>;
+  };
+
+  // Sıralanmış çalışanları al
+  const getSortedCalisanlar = () => {
+    if (!sortConfig) return filtered;
+
+    return [...filtered].sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+
+      // Ad Soyad sıralaması için özel işlem
+      if (sortConfig.key === 'ad') {
+        aValue = `${a.ad} ${a.soyad}`;
+        bValue = `${b.ad} ${b.soyad}`;
+      } else {
+        aValue = a[sortConfig.key as keyof Calisan];
+        bValue = b[sortConfig.key as keyof Calisan];
+      }
+
+      // Tarih alanları için özel işlem
+      if (sortConfig.key === 'iseGirisTarihi') {
+        aValue = aValue ? new Date(aValue as string).getTime() : 0;
+        bValue = bValue ? new Date(bValue as string).getTime() : 0;
+      }
+
+      if (aValue < bValue) {
+        return sortConfig.direction === 'asc' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+  };
+
   const aktifCalisanlar = calisanlar.filter(c => c.isAktif);
   const filtered = aktifCalisanlar.filter(
     (c) =>
@@ -289,22 +345,34 @@ const Isciler: React.FC<IscilerProps> = ({ showAddWorker, setShowAddWorker }) =>
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900 min-h-screen p-4 md:p-8">
-      {/* Sağ üstte sabit buton ve menüler */}
-      <div className="fixed top-4 right-8 z-50 flex items-center gap-3">
-        <button
-          onClick={() => setShowAdd(true)}
-          className="bg-black text-white px-4 py-2 rounded shadow hover:bg-gray-800 transition font-semibold"
-        >
-          + Yeni İşçi Ekle
-        </button>
-        <NotificationBell />
-        <UserProfileMenu />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Header */}
+      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-6">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">İşçi Yönetimi</h1>
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                Personel bilgileri ve görev dağılımı
+              </p>
+            </div>
+            <button className="btn-primary flex items-center" onClick={() => setShowAdd(true)}>
+              <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Yeni İşçi Ekle
+            </button>
+          </div>
+        </div>
       </div>
-      <div className="flex flex-col md:flex-row md:items-center md:gap-4 mb-6">
-        <h1 className="text-3xl font-bold text-black dark:text-gray-100 flex items-center gap-2">İşçi Yönetimi</h1>
-      </div>
-      <div className="flex flex-col md:flex-row gap-4 mb-4 items-center">
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Sağ üstte sabit menüler */}
+        <div className="fixed top-4 right-8 z-50 flex items-center gap-3">
+          <NotificationBell />
+          <UserProfileMenu />
+        </div>
+        <div className="flex flex-col md:flex-row gap-4 mb-4 items-center">
         <div>
           <select
             className="border rounded px-3 py-2 focus:outline-primary-gold dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700"
@@ -340,16 +408,41 @@ const Isciler: React.FC<IscilerProps> = ({ showAddWorker, setShowAddWorker }) =>
         <table className="min-w-full text-sm text-left">
           <thead className="bg-gray-100 dark:bg-gray-800">
             <tr>
-              <th className="px-4 py-2 bg-gray-100 dark:bg-gray-800 dark:text-gray-100">Ad Soyad</th>
-              <th className="px-4 py-2 bg-gray-100 dark:bg-gray-800 dark:text-gray-100">İşe Giriş Tarihi</th>
-              <th className="px-4 py-2 bg-gray-100 dark:bg-gray-800 dark:text-gray-100">Departman</th>
-              <th className="px-4 py-2 bg-gray-100 dark:bg-gray-800 dark:text-gray-100">Ustalık Seviyesi</th>
-              <th className="px-4 py-2 bg-gray-100 dark:bg-gray-800 dark:text-gray-100">Net Maaş</th>
+              <th 
+                className="px-4 py-2 bg-gray-100 dark:bg-gray-800 dark:text-gray-100 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 select-none"
+                onClick={() => handleSort('ad')}
+              >
+                Ad Soyad{getSortIcon('ad')}
+              </th>
+              <th 
+                className="px-4 py-2 bg-gray-100 dark:bg-gray-800 dark:text-gray-100 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 select-none"
+                onClick={() => handleSort('iseGirisTarihi')}
+              >
+                İşe Giriş Tarihi{getSortIcon('iseGirisTarihi')}
+              </th>
+              <th 
+                className="px-4 py-2 bg-gray-100 dark:bg-gray-800 dark:text-gray-100 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 select-none"
+                onClick={() => handleSort('departman')}
+              >
+                Departman{getSortIcon('departman')}
+              </th>
+              <th 
+                className="px-4 py-2 bg-gray-100 dark:bg-gray-800 dark:text-gray-100 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 select-none"
+                onClick={() => handleSort('ustalikSeviyesi')}
+              >
+                Ustalık Seviyesi{getSortIcon('ustalikSeviyesi')}
+              </th>
+              <th 
+                className="px-4 py-2 bg-gray-100 dark:bg-gray-800 dark:text-gray-100 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 select-none"
+                onClick={() => handleSort('maas')}
+              >
+                Net Maaş{getSortIcon('maas')}
+              </th>
               <th className="px-4 py-2 bg-gray-100 dark:bg-gray-800 dark:text-gray-100">Profil Kartı</th>
             </tr>
           </thead>
           <tbody>
-            {filtered.map((c, idx) => (
+            {getSortedCalisanlar().map((c, idx) => (
               <tr key={c._id} className={"hover:bg-gray-50 dark:hover:bg-gray-700 " + (idx % 2 === 0 ? 'dark:bg-gray-900' : 'dark:bg-gray-800') + " dark:text-gray-100"}>
                 <td className="px-4 py-2 font-medium text-black dark:text-gray-100">{c.ad} {c.soyad}</td>
                 <td className="px-4 py-2 text-black dark:text-gray-100">{new Date(c.iseGirisTarihi).toLocaleDateString('tr-TR')}</td>
@@ -569,7 +662,8 @@ const Isciler: React.FC<IscilerProps> = ({ showAddWorker, setShowAddWorker }) =>
           </div>
         </div>
       )}
-      {loading && <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50"><div className="bg-white dark:bg-gray-800 p-6 rounded shadow text-lg">Yükleniyor...</div></div>}
+        {loading && <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50"><div className="bg-white dark:bg-gray-800 p-6 rounded shadow text-lg">Yükleniyor...</div></div>}
+      </div>
     </div>
   );
 };

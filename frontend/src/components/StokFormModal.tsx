@@ -142,16 +142,16 @@ const StokFormModal: React.FC<StokFormModalProps> = ({ open, onClose, onSubmit, 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 relative">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-lg p-6 relative">
         <button
-          className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-xl"
+          className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100 text-xl"
           onClick={onClose}
           disabled={loading}
         >
           ×
         </button>
-        <h2 className="text-xl font-bold mb-4">{isEdit ? 'Stok Düzenle' : 'Yeni Stok Ekle'}</h2>
-        {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded mb-3">{error}
+        <h2 className="text-xl font-bold mb-4 dark:text-gray-100">{isEdit ? 'Stok Düzenle' : 'Yeni Stok Ekle'}</h2>
+        {error && <div className="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-2 rounded mb-3">{error}
           {errorList.length > 0 && (
             <ul className="mt-1 list-disc list-inside text-sm">
               {errorList.map((err, i) => <li key={i}>{err}</li>)}
@@ -161,92 +161,92 @@ const StokFormModal: React.FC<StokFormModalProps> = ({ open, onClose, onSubmit, 
         <form className="space-y-3" onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Malzeme Adı *</label>
-              <input type="text" name="malzemeAdi" value={form.malzemeAdi} onChange={handleChange} className="input-field" required />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Malzeme Adı *</label>
+              <input type="text" name="malzemeAdi" value={form.malzemeAdi} onChange={handleChange} className="input-field dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600" required />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Malzeme Kodu *</label>
-              <input type="text" name="malzemeKodu" value={form.malzemeKodu} onChange={handleChange} className="input-field" required />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Malzeme Kodu *</label>
+              <input type="text" name="malzemeKodu" value={form.malzemeKodu} onChange={handleChange} className="input-field dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600" required />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Kategori *</label>
-              <select name="kategori" value={form.kategori} onChange={handleChange} className="input-field" required>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Kategori *</label>
+              <select name="kategori" value={form.kategori} onChange={handleChange} className="input-field dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600" required>
                 {kategoriListesi.map((k) => (
                   <option key={k.value} value={k.value}>{k.label}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Alt Kategori</label>
-              <input type="text" name="altKategori" value={form.altKategori} onChange={handleChange} className="input-field" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Alt Kategori</label>
+              <input type="text" name="altKategori" value={form.altKategori} onChange={handleChange} className="input-field dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Miktar *</label>
-              <input type="number" name="miktar" value={form.miktar} onChange={handleNumberChange} className="input-field" min={0} required />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Miktar *</label>
+              <input type="number" name="miktar" value={form.miktar} onChange={handleNumberChange} className="input-field dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600" min={0} required />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Birim *</label>
-              <select name="birim" value={form.birim} onChange={handleChange} className="input-field" required>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Birim *</label>
+              <select name="birim" value={form.birim} onChange={handleChange} className="input-field dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600" required>
                 {birimListesi.map((b) => (
                   <option key={b.value} value={b.value}>{b.label}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Minimum Stok *</label>
-              <input type="number" name="minimumStok" value={form.minimumStok} onChange={handleNumberChange} className="input-field" min={0} required />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Minimum Stok *</label>
+              <input type="number" name="minimumStok" value={form.minimumStok} onChange={handleNumberChange} className="input-field dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600" min={0} required />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Birim Fiyat *</label>
-              <input type="number" name="birimFiyat" value={form.birimFiyat} onChange={handleNumberChange} className="input-field" min={0} required />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Birim Fiyat *</label>
+              <input type="number" name="birimFiyat" value={form.birimFiyat} onChange={handleNumberChange} className="input-field dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600" min={0} required />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Para Birimi *</label>
-              <select name="paraBirimi" value={form.paraBirimi} onChange={handleChange} className="input-field" required>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Para Birimi *</label>
+              <select name="paraBirimi" value={form.paraBirimi} onChange={handleChange} className="input-field dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600" required>
                 {paraBirimiListesi.map((p) => (
                   <option key={p.value} value={p.value}>{p.label}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Renk</label>
-              <input type="text" name="renk" value={form.renk} onChange={handleChange} className="input-field" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Renk</label>
+              <input type="text" name="renk" value={form.renk} onChange={handleChange} className="input-field dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Kalite</label>
-              <select name="kalite" value={form.kalite} onChange={handleChange} className="input-field">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Kalite</label>
+              <select name="kalite" value={form.kalite} onChange={handleChange} className="input-field dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600">
                 {kaliteListesi.map((k) => (
                   <option key={k.value} value={k.value}>{k.label}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Depo Konumu</label>
-              <input type="text" name="depoKonumu" value={form.depoKonumu} onChange={handleChange} className="input-field" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Depo Konumu</label>
+              <input type="text" name="depoKonumu" value={form.depoKonumu} onChange={handleChange} className="input-field dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600" />
             </div>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Tedarikçi Adı</label>
-              <input type="text" name="tedarikci.ad" value={form.tedarikci?.ad || ''} onChange={handleChange} className="input-field" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tedarikçi Adı</label>
+              <input type="text" name="tedarikci.ad" value={form.tedarikci?.ad || ''} onChange={handleChange} className="input-field dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Tedarikçi Tel</label>
-              <input type="text" name="tedarikci.telefon" value={form.tedarikci?.telefon || ''} onChange={handleChange} className="input-field" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tedarikçi Tel</label>
+              <input type="text" name="tedarikci.telefon" value={form.tedarikci?.telefon || ''} onChange={handleChange} className="input-field dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Tedarikçi Email</label>
-              <input type="email" name="tedarikci.email" value={form.tedarikci?.email || ''} onChange={handleChange} className="input-field" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tedarikçi Email</label>
+              <input type="email" name="tedarikci.email" value={form.tedarikci?.email || ''} onChange={handleChange} className="input-field dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600" />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Açıklama</label>
-            <textarea name="aciklama" value={form.aciklama} onChange={handleChange} className="input-field" rows={2} />
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Açıklama</label>
+            <textarea name="aciklama" value={form.aciklama} onChange={handleChange} className="input-field dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600" rows={2} />
           </div>
           <div className="flex justify-end mt-4">
             <button
               type="button"
-              className="btn-outline mr-2"
+              className="btn-secondary mr-2"
               onClick={onClose}
               disabled={loading}
             >
