@@ -141,16 +141,25 @@ const StokFormModal: React.FC<StokFormModalProps> = ({ open, onClose, onSubmit, 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-lg p-6 relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-lg max-h-[90vh] overflow-y-auto relative">
         <button
-          className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100 text-xl"
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100 text-2xl font-bold z-10"
           onClick={onClose}
           disabled={loading}
         >
           ×
         </button>
-        <h2 className="text-xl font-bold mb-4 dark:text-gray-100">{isEdit ? 'Stok Düzenle' : 'Yeni Stok Ekle'}</h2>
+        
+        {/* Header */}
+        <div className={`p-6 rounded-t-lg ${isEdit ? 'bg-gradient-to-r from-blue-500 to-blue-600' : 'bg-gradient-to-r from-primary-gold to-yellow-400'}`}>
+          <h2 className="text-2xl font-bold text-white">{isEdit ? 'Stok Düzenle' : 'Yeni Stok Ekle'}</h2>
+          <p className={`${isEdit ? 'text-blue-100' : 'text-yellow-100'}`}>
+            {isEdit ? 'Stok bilgilerini güncelleyin' : 'Yeni stok malzemesi ekleyin'}
+          </p>
+        </div>
+
+        <div className="p-6">
         {error && <div className="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-2 rounded mb-3">{error}
           {errorList.length > 0 && (
             <ul className="mt-1 list-disc list-inside text-sm">
@@ -261,6 +270,7 @@ const StokFormModal: React.FC<StokFormModalProps> = ({ open, onClose, onSubmit, 
             </button>
           </div>
         </form>
+        </div>
       </div>
     </div>
   );

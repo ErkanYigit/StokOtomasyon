@@ -19,11 +19,11 @@ const icons: Record<string, string> = {
 };
 
 const InfoRow = ({ label, value }: { label: string; value: string | number | undefined }) => (
-  <div className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 transition">
+  <div className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition">
     <span className="text-lg w-6 text-center">{icons[label] || '•'}</span>
     <div className="flex flex-col gap-0.5">
-      <span className="text-xs text-gray-400">{label}</span>
-      <span className="text-sm text-gray-900 font-medium">{value || '-'}</span>
+      <span className="text-xs text-gray-400 dark:text-gray-500">{label}</span>
+      <span className="text-sm text-gray-900 dark:text-gray-100 font-medium">{value || '-'}</span>
     </div>
   </div>
 );
@@ -31,7 +31,7 @@ const InfoRow = ({ label, value }: { label: string; value: string | number | und
 const Profil: React.FC = () => {
   const { user } = useAuth();
   const userAny = user as any;
-  if (!user) return <div className="p-8">Kullanıcı bilgisi bulunamadı.</div>;
+  if (!user) return <div className="p-8 text-gray-900 dark:text-gray-100">Kullanıcı bilgisi bulunamadı.</div>;
   const fullName = `${user.ad} ${user.soyad}`;
   const avatarUrl = defaultAvatar(fullName);
   const email = user.email || '-';

@@ -291,10 +291,19 @@ const Siparisler: React.FC = () => {
 
         {/* Sipariş Ekle/Düzenle Modalı */}
         {modalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-            <div className="bg-white rounded-lg shadow-lg w-full max-w-xl p-6 relative dark:bg-gray-800">
-              <button className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-xl" onClick={closeModal} disabled={formLoading}>×</button>
-              <h2 className="text-xl font-bold mb-4">{editOrder ? 'Siparişi Düzenle' : 'Yeni Sipariş Ekle'}</h2>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
+            <div className="bg-white rounded-lg shadow-lg w-full max-w-xl max-h-[90vh] overflow-y-auto relative dark:bg-gray-800">
+              <button className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 dark:hover:text-gray-100 text-2xl font-bold z-10" onClick={closeModal} disabled={formLoading}>×</button>
+              
+              {/* Header */}
+              <div className={`p-6 rounded-t-lg ${editOrder ? 'bg-gradient-to-r from-blue-500 to-blue-600' : 'bg-gradient-to-r from-primary-gold to-yellow-400'}`}>
+                <h2 className="text-2xl font-bold text-white">{editOrder ? 'Siparişi Düzenle' : 'Yeni Sipariş Ekle'}</h2>
+                <p className={`${editOrder ? 'text-blue-100' : 'text-yellow-100'}`}>
+                  {editOrder ? 'Sipariş bilgilerini güncelleyin' : 'Yeni müşteri siparişi oluşturun'}
+                </p>
+              </div>
+
+              <div className="p-6">
               <form className="space-y-3 dark:bg-gray-800" onSubmit={handleFormSubmit}>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Müşteri Adı *</label>
@@ -334,6 +343,7 @@ const Siparisler: React.FC = () => {
                   <button type="submit" className="btn-primary" disabled={formLoading}>{formLoading ? 'Kaydediliyor...' : (editOrder ? 'Güncelle' : 'Ekle')}</button>
                 </div>
               </form>
+              </div>
             </div>
           </div>
         )}

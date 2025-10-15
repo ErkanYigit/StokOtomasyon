@@ -15,9 +15,22 @@ import {
   LineElement,
   Title,
 } from 'chart.js';
+
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import '../fonts/DejaVuSans-normal.js';
+
+// Chart.js bileşenlerini kaydet
+ChartJS.register(
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title
+);
 // Departmanlar ve ustalık seviyeleri
 const DEPARTMANLAR = ['Kesim', 'Döşeme', 'Montaj'];
 const USTALIK = ['Çırak', 'Kalfa', 'Usta'];
@@ -165,9 +178,23 @@ const Isciler: React.FC<IscilerProps> = ({ showAddWorker, setShowAddWorker }) =>
   useEffect(() => {
     setLoading(true);
     getCalisanlar().then(data => {
-      setCalisanlar(data);
+      // API'den gelen veriyi mock veri yapısıyla uyumlu hale getir
+      const normalizedData = Array.isArray(data) ? data.map(calisan => ({
+        ...calisan,
+        toplamSaat: calisan.toplamSaat || 0,
+        aylikEkMesai: calisan.aylikEkMesai || 0,
+        saatlikUcret: calisan.saatlikUcret || 0,
+        katkilar: calisan.katkilar || [],
+        mesaiTrend: calisan.mesaiTrend || [8, 8, 8, 8, 8, 0, 0],
+        siparisler: calisan.siparisler || []
+      })) : INITIAL_MOCK;
+      setCalisanlar(normalizedData);
       setLoading(false);
-    }).catch(() => setLoading(false));
+    }).catch(() => {
+      // API hatası durumunda mock veriyi kullan
+      setCalisanlar(INITIAL_MOCK);
+      setLoading(false);
+    });
   }, []);
 
   const handleAdd = async (e: React.FormEvent) => {
@@ -465,16 +492,23 @@ const Isciler: React.FC<IscilerProps> = ({ showAddWorker, setShowAddWorker }) =>
         </table>
       </div>
       {showAdd && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-md w-full p-6 relative animate-fadeIn">
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto relative animate-fadeIn">
             <button
-              className="absolute top-3 right-3 text-gray-400 hover:text-black text-xl"
+              className="absolute top-4 right-4 text-gray-400 hover:text-black dark:hover:text-gray-100 text-2xl font-bold z-10"
               onClick={() => setShowAdd(false)}
               aria-label="Kapat"
             >
               ×
             </button>
-            <h2 className="text-xl font-bold mb-4 text-black">Yeni İşçi Ekle</h2>
+            
+            {/* Header */}
+            <div className="bg-gradient-to-r from-primary-gold to-yellow-400 p-6 rounded-t-lg">
+              <h2 className="text-2xl font-bold text-white">Yeni İşçi Ekle</h2>
+              <p className="text-yellow-100">Çalışan bilgilerini girin</p>
+            </div>
+
+            <div className="p-6">
             <form onSubmit={handleAdd} className="flex flex-col gap-3">
               <div className="flex gap-2">
                 <input type="text" className="border rounded px-3 py-2 w-1/2 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400" placeholder="Ad" value={form.ad} onChange={e => setForm(f => ({ ...f, ad: e.target.value }))} required />
@@ -503,20 +537,28 @@ const Isciler: React.FC<IscilerProps> = ({ showAddWorker, setShowAddWorker }) =>
               <input type="text" className="border rounded px-3 py-2 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400" placeholder="Fotoğraf URL (opsiyonel)" value={form.fotoUrl} onChange={e => setForm(f => ({ ...f, fotoUrl: e.target.value }))} />
               <button type="submit" className="bg-primary-gold text-white px-4 py-2 rounded shadow hover:bg-yellow-600 transition font-semibold mt-2">Kaydet</button>
             </form>
+            </div>
           </div>
         </div>
       )}
       {edit && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-md w-full p-6 relative animate-fadeIn">
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto relative animate-fadeIn">
             <button
-              className="absolute top-3 right-3 text-gray-400 hover:text-black text-xl"
+              className="absolute top-4 right-4 text-gray-400 hover:text-black dark:hover:text-gray-100 text-2xl font-bold z-10"
               onClick={() => setEdit(null)}
               aria-label="Kapat"
             >
               ×
             </button>
-            <h2 className="text-xl font-bold mb-4 text-black">İşçi Bilgilerini Düzenle</h2>
+            
+            {/* Header */}
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-t-lg">
+              <h2 className="text-2xl font-bold text-white">İşçi Bilgilerini Düzenle</h2>
+              <p className="text-blue-100">{edit.ad} {edit.soyad}</p>
+            </div>
+
+            <div className="p-6">
             <form onSubmit={handleEditSave} className="flex flex-col gap-3">
               <div className="flex gap-2">
                 <input type="text" className="border rounded px-3 py-2 w-1/2 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400" placeholder="Ad" value={editForm.ad} onChange={e => setEditForm(f => ({ ...f, ad: e.target.value }))} required />
@@ -545,97 +587,174 @@ const Isciler: React.FC<IscilerProps> = ({ showAddWorker, setShowAddWorker }) =>
               <input type="text" className="border rounded px-3 py-2 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400" placeholder="Fotoğraf URL (opsiyonel)" value={editForm.fotoUrl} onChange={e => setEditForm(f => ({ ...f, fotoUrl: e.target.value }))} />
               <button type="submit" className="bg-primary-gold text-white px-4 py-2 rounded shadow hover:bg-yellow-600 transition font-semibold mt-2">Kaydet</button>
             </form>
+            </div>
           </div>
         </div>
       )}
       {selected && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-2xl w-full p-6 relative animate-fadeIn">
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto relative animate-fadeIn">
             <button
-              className="absolute top-3 right-3 text-gray-400 hover:text-black dark:hover:text-gray-100 text-xl"
+              className="absolute top-4 right-4 text-gray-400 hover:text-black dark:hover:text-gray-100 text-2xl font-bold z-10"
               onClick={() => setSelected(null)}
               aria-label="Kapat"
             >
               ×
             </button>
-            <div className="flex flex-col md:flex-row gap-6">
-              <div className="flex-1">
-                <h2 className="text-xl font-bold mb-2 text-black dark:text-gray-100">{selected.ad} {selected.soyad}</h2>
-                <div className="text-gray-700 dark:text-gray-200 mb-2">{selected.tckn && <span>TC: {selected.tckn}<br /></span>}
-                  <span>Departman: <b>{selected.departman}</b></span><br />
-                  <span>Ustalık: <b>{selected.ustalikSeviyesi}</b></span><br />
-                  <span>Maaş: <b>₺{selected.maas.toLocaleString('tr-TR')}</b></span>
+            
+            {/* Header */}
+            <div className="bg-gradient-to-r from-primary-gold to-yellow-400 p-6 rounded-t-lg">
+              <h2 className="text-2xl font-bold text-white">{selected.ad} {selected.soyad}</h2>
+              <p className="text-yellow-100">{selected.departman} - {selected.ustalikSeviyesi}</p>
+            </div>
+
+            <div className="p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Sol Kolon - Bilgiler */}
+                <div className="space-y-4">
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">Temel Bilgiler</h3>
+                    <div className="space-y-2 text-sm">
+                      {selected.tckn && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 dark:text-gray-300">TC Kimlik:</span>
+                          <span className="font-medium text-gray-900 dark:text-gray-100">{selected.tckn}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-300">İşe Giriş:</span>
+                        <span className="font-medium text-gray-900 dark:text-gray-100">
+                          {new Date(selected.iseGirisTarihi).toLocaleDateString('tr-TR')}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-300">Toplam Saat:</span>
+                        <span className="font-medium text-gray-900 dark:text-gray-100">{selected.toplamSaat || 0} saat</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-300">Aylık Mesai:</span>
+                        <span className="font-medium text-gray-900 dark:text-gray-100">{selected.aylikEkMesai || 0} saat</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">Maaş Bilgileri</h3>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-300">Temel Maaş:</span>
+                        <span className="font-medium text-gray-900 dark:text-gray-100">₺{selected.maas.toLocaleString('tr-TR')}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-300">Saatlik Ücret:</span>
+                        <span className="font-medium text-gray-900 dark:text-gray-100">₺{selected.saatlikUcret || 0}</span>
+                      </div>
+                      <div className="border-t border-gray-200 dark:border-gray-600 pt-2 mt-2">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 dark:text-gray-300">Toplam Maaş:</span>
+                          <span className="font-bold text-primary-gold text-lg">
+                            ₺{(selected.maas + (selected.aylikEkMesai || 0) * (selected.saatlikUcret || 0)).toLocaleString('tr-TR')}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          Temel + ({(selected.aylikEkMesai || 0)} × ₺{selected.saatlikUcret || 0})
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* İşlem Butonları */}
+                  <div className="space-y-2">
+                    <button 
+                      className="w-full bg-primary-gold text-white px-4 py-2 rounded-lg shadow hover:bg-yellow-600 transition text-sm font-medium"
+                      onClick={() => alert('Görev atama özelliği yakında eklenecek!')}
+                    >
+                      📋 Görev Ata
+                    </button>
+                    <button 
+                      className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition text-sm font-medium"
+                      onClick={() => alert('Maaş güncelleme özelliği yakında eklenecek!')}
+                    >
+                      💰 Maaş Güncelle
+                    </button>
+                    <button 
+                      className="w-full bg-red-500 text-white px-4 py-2 rounded-lg shadow hover:bg-red-600 transition text-sm font-medium"
+                      onClick={() => {
+                        if (window.confirm(`${selected.ad} ${selected.soyad} için işten ayrılma işlemini onaylıyor musunuz?`)) {
+                          handleSoftDelete(selected._id, selected.ad, selected.soyad);
+                          setSelected(null);
+                        }
+                      }}
+                    >
+                      🚪 İşten Ayrıldı
+                    </button>
+                  </div>
                 </div>
-                <div className="text-gray-700 dark:text-gray-200 mb-2">
-                  <span>İşe Giriş: {new Date(selected.iseGirisTarihi).toLocaleDateString('tr-TR')}</span>
-                </div>
-                <div className="text-gray-700 dark:text-gray-200 mb-2">
-                  <span>Toplam Çalıştığı Saat: <b>{selected.toplamSaat}</b></span><br />
-                  <span>Aylık Ortalama Mesai: <b>{selected.aylikEkMesai} saat</b></span>
-                </div>
-                <div className="text-gray-700 dark:text-gray-200 mb-2">
-                  <span>Güncel Maaş Hesabı:</span><br />
-                  <span className="text-xs">Maaş = Temel Maaş + (Ek Mesai × Saatlik Ücret)</span><br />
-                  <span className="font-semibold">₺{selected.maas.toLocaleString('tr-TR')} + ({selected.aylikEkMesai} × ₺{selected.saatlikUcret}) = <span className="text-primary-gold">₺{(selected.maas + selected.aylikEkMesai * selected.saatlikUcret).toLocaleString('tr-TR')}</span></span>
-                </div>
-                <div className="flex gap-2 mt-4">
-                  <button className="bg-primary-gold text-white px-3 py-1 rounded shadow flex items-center gap-1 hover:bg-yellow-600 transition text-sm">
-                    Görev Ata
-                  </button>
-                  <button className="bg-blue-600 text-white px-3 py-1 rounded shadow flex items-center gap-1 hover:bg-blue-700 transition text-sm">
-                    Maaş Güncelle
-                  </button>
-                  <button className="bg-red-500 text-white px-3 py-1 rounded shadow flex items-center gap-1 hover:bg-red-600 transition text-sm">
-                    İşten Ayrıldı
-                  </button>
-                </div>
-              </div>
-              <div className="flex-1 flex flex-col gap-4">
-                <div>
-                  <h3 className="font-semibold mb-1 text-black dark:text-gray-100">Üretime Katkı Oranı</h3>
-                  <Pie
-                    data={{
-                      labels: selected.katkilar?.map(k => k.label),
-                      datasets: [{
-                        data: selected.katkilar?.map(k => k.value),
-                        backgroundColor: ['#D4AF37', '#222', '#888'],
-                        borderWidth: 1,
-                      }],
-                    }}
-                    options={{ plugins: { legend: { position: 'bottom' } } }}
-                  />
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-1 text-black dark:text-gray-100">Son 7 Günlük Mesai Trend</h3>
-                  <Line
-                    data={{
-                      labels: ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'],
-                      datasets: [{
-                        label: 'Mesai (saat)',
-                        data: selected.mesaiTrend,
-                        borderColor: '#D4AF37',
-                        backgroundColor: 'rgba(212,175,55,0.2)',
-                        tension: 0.4,
-                      }],
-                    }}
-                    options={{
-                      plugins: { legend: { display: false } },
-                      scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
-                    }}
-                  />
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-1 text-black dark:text-gray-100">İş Geçmişi</h3>
-                  <div className="text-xs text-gray-700">
-                    {selected.siparisler && selected.siparisler.length > 0 ? (
-                      <ul className="list-disc ml-4">
-                        {selected.siparisler.map(sip => (
-                          <li key={sip}>Sipariş: <span className="font-semibold">{sip}</span></li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <span>Henüz bir siparişte çalışmadı.</span>
-                    )}
+                {/* Sağ Kolon - Grafikler */}
+                <div className="space-y-4">
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">Üretime Katkı Oranı</h3>
+                    <div className="h-48">
+                      <Pie
+                        key={`pie-${selected._id}`}
+                        data={{
+                          labels: selected.katkilar?.map(k => k.label) || ['Veri Yok'],
+                          datasets: [{
+                            data: selected.katkilar?.map(k => k.value) || [100],
+                            backgroundColor: ['#D4AF37', '#222', '#888'],
+                            borderWidth: 1,
+                          }],
+                        }}
+                        options={{ 
+                          plugins: { legend: { position: 'bottom' } },
+                          maintainAspectRatio: false
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">Son 7 Günlük Mesai Trend</h3>
+                    <div className="h-48">
+                      <Line
+                        key={`line-${selected._id}`}
+                        data={{
+                          labels: ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'],
+                          datasets: [{
+                            label: 'Mesai (saat)',
+                            data: selected.mesaiTrend || [8, 8, 8, 8, 8, 0, 0],
+                            borderColor: '#D4AF37',
+                            backgroundColor: 'rgba(212,175,55,0.2)',
+                            tension: 0.4,
+                          }],
+                        }}
+                        options={{
+                          plugins: { legend: { display: false } },
+                          scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+                          maintainAspectRatio: false
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">İş Geçmişi</h3>
+                    <div className="text-sm text-gray-700 dark:text-gray-300">
+                      {selected.siparisler && selected.siparisler.length > 0 ? (
+                        <ul className="space-y-1">
+                          {selected.siparisler.map(sip => (
+                            <li key={sip} className="flex items-center gap-2">
+                              <span className="w-2 h-2 bg-primary-gold rounded-full"></span>
+                              <span>Sipariş: <span className="font-semibold">{sip}</span></span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                          <p>📋 Henüz bir siparişte çalışmadı</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

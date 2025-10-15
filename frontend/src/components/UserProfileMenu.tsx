@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import ChangePasswordModal from './ChangePasswordModal';
 import { useTheme } from '../context/ThemeContext';
 import { SunIcon, MoonIcon } from '@heroicons/react/24/outline';
@@ -20,6 +20,7 @@ const UserProfileMenu: React.FC = () => {
   const [showChangePw, setShowChangePw] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const { theme, toggleTheme } = useTheme();
 
   const handleProfile = () => {
@@ -48,6 +49,11 @@ const UserProfileMenu: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClick);
   }, [open]);
 
+  // Sayfa değişikliklerinde dropdown'ı kapat
+  useEffect(() => {
+    setOpen(false);
+  }, [location.pathname]);
+
   if (!user) return null;
   const fullName = `${user.ad} ${user.soyad}`;
   const avatarUrl = defaultAvatar(fullName);
@@ -65,7 +71,10 @@ const UserProfileMenu: React.FC = () => {
         <span className="hidden md:block font-medium text-gray-800 text-sm">{user.ad}</span>
       </button>
       {open && (
-        <div className="absolute right-0 mt-2 w-64 rounded-lg shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none border border-gray-200 dark:border-gray-700 z-50">
+        <div 
+          ref={menuRef}
+          className="absolute right-0 mt-2 w-64 rounded-lg shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none border border-gray-200 dark:border-gray-700 z-50"
+        >
           <div className="p-4">
             <div className="flex items-center space-x-3">
               <div className="h-10 w-10 rounded-full bg-primary-gold flex items-center justify-center text-white font-bold text-lg">
