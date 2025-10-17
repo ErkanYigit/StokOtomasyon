@@ -209,7 +209,7 @@ export const movementAPI = {
     stokId?: string;
   }): Promise<MovementData[]> => {
     const response = await api.get('/movements', { params });
-    return response.data.data; // Doğrudan dizi dönüyor
+    return response.data; // Backend doğrudan dizi döndürüyor
   }
 };
 
