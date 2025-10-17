@@ -63,9 +63,31 @@ const getMovements = async (req, res) => {
   }
 };
 
+// Tüm hareketleri sil
+const deleteAllMovements = async (req, res) => {
+  try {
+    console.log('Tüm hareketler siliniyor...');
+    const result = await Movement.deleteMany({});
+    console.log(`${result.deletedCount} hareket silindi`);
+    res.json({ 
+      success: true, 
+      message: `${result.deletedCount} hareket kaydı silindi`,
+      deletedCount: result.deletedCount
+    });
+  } catch (err) {
+    console.error('Hareketler silinirken hata:', err);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Hareketler silinirken hata oluştu.', 
+      error: err.message 
+    });
+  }
+};
+
 console.log('movementController export edildi');
 
 module.exports = {
   createMovement,
-  getMovements
+  getMovements,
+  deleteAllMovements
 }; 

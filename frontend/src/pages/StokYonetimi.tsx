@@ -43,6 +43,8 @@ const StokYonetimi: React.FC = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [stokToDelete, setStokToDelete] = useState<StokData | undefined>(undefined);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [clearMovementsModalOpen, setClearMovementsModalOpen] = useState(false);
+  const [clearMovementsLoading, setClearMovementsLoading] = useState(false);
 
   // Stok listesini yükle
   const fetchStoklar = async () => {
@@ -221,6 +223,20 @@ const StokYonetimi: React.FC = () => {
   const handleCancelDelete = () => {
     setDeleteModalOpen(false);
     setStokToDelete(undefined);
+  };
+
+  // Hareketleri temizle
+  const handleClearMovements = async () => {
+    setClearMovementsLoading(true);
+    try {
+      await movementAPI.deleteAll();
+      await fetchMovements(); // Hareketleri yeniden yükle
+      setClearMovementsModalOpen(false);
+    } catch (error) {
+      console.error('Hareketler temizlenirken hata:', error);
+    } finally {
+      setClearMovementsLoading(false);
+    }
   };
 
   const handleOpenMiktarModal = (stok: StokData, isEkle: boolean) => {
@@ -559,17 +575,28 @@ const StokYonetimi: React.FC = () => {
         {/* Günlük Değişimler Tablosu */}
         <div className="card mt-8 dark:bg-gray-800 dark:border-gray-700">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+            <h3 className="text-lg font-semibold flex items-center">
               <ClockIcon className="h-5 w-5 mr-2 text-primary-gold" />
               Günlük Değişimler
             </h3>
-            <button 
-              onClick={fetchMovements}
-              disabled={movementsLoading}
-              className="text-sm text-primary-gold hover:text-yellow-600 font-medium"
-            >
-              {movementsLoading ? 'Yükleniyor...' : 'Yenile'}
-            </button>
+            <div className="flex items-center space-x-2">
+              <button 
+                onClick={fetchMovements}
+                disabled={movementsLoading}
+                className="text-sm text-primary-gold hover:text-yellow-600 font-medium"
+              >
+                {movementsLoading ? 'Yükleniyor...' : 'Yenile'}
+              </button>
+              {movements.length > 0 && (
+                <button 
+                  onClick={() => setClearMovementsModalOpen(true)}
+                  disabled={movementsLoading}
+                  className="text-sm text-red-600 hover:text-red-700 font-medium"
+                >
+                  Temizle
+                </button>
+              )}
+            </div>
           </div>
           
           <div className="overflow-x-auto">
@@ -597,10 +624,10 @@ const StokYonetimi: React.FC = () => {
                       <td className="table-cell">
                         <div>
                           <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                            {movement.stok.malzemeAdi}
+                            {movement.stok?.malzemeAdi || 'Bilinmeyen Malzeme'}
                           </div>
                           <div className="text-sm text-gray-500 dark:text-gray-300">
-                            {movement.stok.malzemeKodu}
+                            {movement.stok?.malzemeKodu || '-'}
                           </div>
                         </div>
                       </td>
@@ -627,7 +654,7 @@ const StokYonetimi: React.FC = () => {
                       </td>
                       <td className="table-cell">
                         <span className="text-sm text-gray-900 dark:text-gray-100">
-                          {movement.user.ad} {movement.user.soyad}
+                          {movement.user?.ad && movement.user?.soyad ? `${movement.user.ad} ${movement.user.soyad}` : 'Bilinmeyen Kullanıcı'}
                         </span>
                       </td>
                       <td className="table-cell">
@@ -694,6 +721,46 @@ const StokYonetimi: React.FC = () => {
                   className="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {deleteLoadingId === stokToDelete?._id ? 'Siliniyor...' : 'Kalıcı Olarak Sil'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Hareketleri Temizleme Onay Modalı */}
+      {clearMovementsModalOpen && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
+            <div className="mt-3 text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900">
+                <TrashIcon className="h-6 w-6 text-red-600 dark:text-red-400" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mt-4">
+                Hareketleri Temizleme Onayı
+              </h3>
+              <div className="mt-2 px-7 py-3">
+                <p className="text-sm text-gray-500 dark:text-gray-300">
+                  Tüm günlük değişim kayıtlarını 
+                  <span className="text-red-600 dark:text-red-400 font-semibold"> kalıcı olarak silmek</span> istediğinizden emin misiniz?
+                </p>
+                <p className="text-xs text-red-500 dark:text-red-400 mt-2">
+                  ⚠️ Bu işlem geri alınamaz ve tüm hareket geçmişi silinecektir.
+                </p>
+              </div>
+              <div className="flex justify-center space-x-3 mt-4">
+                <button
+                  onClick={() => setClearMovementsModalOpen(false)}
+                  className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-md text-sm font-medium hover:bg-gray-400 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                >
+                  İptal
+                </button>
+                <button
+                  onClick={handleClearMovements}
+                  disabled={clearMovementsLoading}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {clearMovementsLoading ? 'Temizleniyor...' : 'Tümünü Temizle'}
                 </button>
               </div>
             </div>

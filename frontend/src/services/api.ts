@@ -210,6 +210,11 @@ export const movementAPI = {
   }): Promise<MovementData[]> => {
     const response = await api.get('/movements', { params });
     return response.data; // Backend doğrudan dizi döndürüyor
+  },
+
+  deleteAll: async (): Promise<ApiResponse> => {
+    const response = await api.delete('/movements');
+    return response.data;
   }
 };
 
