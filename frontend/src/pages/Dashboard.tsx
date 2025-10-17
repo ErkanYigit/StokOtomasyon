@@ -5,7 +5,6 @@ import {
   CubeIcon, 
   ExclamationTriangleIcon, 
   CurrencyDollarIcon,
-  UserGroupIcon,
   ClipboardDocumentListIcon,
   CogIcon
 } from '@heroicons/react/24/outline';
@@ -145,7 +144,7 @@ const Dashboard: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* İstatistik Kartları */}
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="card dark:bg-gray-800 dark:border-gray-700">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -188,19 +187,6 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
 
-            <div className="card dark:bg-gray-800 dark:border-gray-700">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <UserGroupIcon className="h-8 w-8 text-purple-500" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500 dark:text-gray-300">Aktif Kullanıcı</p>
-                  <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-                    {user?.aktif ? 'Aktif' : 'Pasif'}
-                  </p>
-                </div>
-              </div>
-            </div>
           </div>
         )}
 
