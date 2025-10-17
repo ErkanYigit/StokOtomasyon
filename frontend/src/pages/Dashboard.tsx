@@ -5,6 +5,7 @@ import {
   CubeIcon, 
   ExclamationTriangleIcon, 
   CurrencyDollarIcon,
+  UserGroupIcon,
   ClipboardDocumentListIcon,
   CogIcon
 } from '@heroicons/react/24/outline';
